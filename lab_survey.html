@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>סקר מעבדות - Check Point</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Heebo', 'Arial Hebrew', Arial, sans-serif;
+  background: #F0F4F8;
+  color: #1A2B4A;
+  direction: rtl;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== CSS VARIABLES ===== */
+:root {
+  --navy: #1F3864;
+  --blue: #2E75B6;
+  --blue-light: #BDD7EE;
+  --green-light: #C6EFCE;
+  --orange-light: #FCE4D6;
+  --purple-light: #E2C9E8;
+  --gray-light: #D9D9D9;
+  --white: #FFFFFF;
+  --text-dark: #1A2B4A;
+  --text-mid: #4A5568;
+  --text-light: #718096;
+  --border: #CBD5E0;
+  --shadow: 0 2px 8px rgba(31,56,100,0.10);
+  --shadow-lg: 0 8px 24px rgba(31,56,100,0.15);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: all 0.25s ease;
+  --header-h: 64px;
+  --nav-h: 68px;
+}
+
+/* ===== STICKY HEADER ===== */
+#app-header {
+  position: fixed;
+  top: 0; right: 0; left: 0;
+  height: var(--header-h);
+  background: var(--navy);
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 1000;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+#app-header .logo-area {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+#app-header .logo-area img { height: 36px; width: auto; filter: brightness(0) invert(1); }
+#app-header .logo-dit {
+  background: white;
+  border-radius: 6px;
+  padding: 3px 8px;
+  display: flex; align-items: center;
+}
+#app-header .logo-dit svg { height: 28px; width: auto; }
+#header-lab-name {
+  font-size: 1rem; font-weight: 600;
+  flex: 1; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#header-progress {
+  font-size: 0.8rem; font-weight: 500;
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ===== PROGRESS BAR ===== */
+#progress-bar-wrap {
+  position: fixed;
+  top: var(--header-h);
+  right: 0; left: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  z-index: 999;
+}
+#progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4FC3F7, #81D4FA);
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* ===== MAIN CONTENT ===== */
+#main-content {
+  margin-top: calc(var(--header-h) + 4px);
+  margin-bottom: var(--nav-h);
+  min-height: calc(100vh - var(--header-h) - 4px - var(--nav-h));
+}
+
+/* ===== SCREENS ===== */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ===== HOME SCREEN ===== */
+#screen-home {
+  padding: 24px 16px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.home-title {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.home-title h1 {
+  font-size: 1.7rem; font-weight: 800;
+  color: var(--navy);
+  line-height: 1.3;
+}
+.home-title p {
+  font-size: 1rem; color: var(--text-mid);
+  margin-top: 6px;
+}
+.home-title .dit-badge {
+  display: inline-block;
+  background: var(--navy);
+  color: white;
+  font-size: 0.85rem; font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.lab-btn {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  min-height: 100px;
+  -webkit-tap-highlight-color: transparent;
+}
+.lab-btn:hover, .lab-btn:active {
+  border-color: var(--blue);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.lab-btn .lab-icon {
+  font-size: 1.8rem;
+}
+.lab-btn .lab-name {
+  font-size: 1rem; font-weight: 700;
+  color: var(--navy);
+}
+.lab-btn .lab-badge {
+  font-size: 0.72rem; font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-top: 2px;
+}
+.badge-empty { background: #EDF2F7; color: #718096; }
+.badge-partial { background: #FEFCBF; color: #744210; }
+.badge-complete { background: #C6F6D5; color: #22543D; }
+
+.home-actions {
+  display: flex; gap: 12px;
+  margin-top: 8px;
+}
+.home-actions .btn { flex: 1; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.95rem; font-weight: 600;
+  border: none; cursor: pointer;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--blue);
+  color: white;
+}
+.btn-primary:hover { background: #1E5C9B; }
+.btn-secondary {
+  background: var(--white);
+  color: var(--navy);
+  border: 2px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--blue); background: #EBF4FF; }
+.btn-navy {
+  background: var(--navy);
+  color: white;
+}
+.btn-navy:hover { background: #162B50; }
+.btn-success {
+  background: #38A169;
+  color: white;
+}
+.btn-danger {
+  background: #E53E3E;
+  color: white;
+}
+.btn-sm { padding: 9px 14px; font-size: 0.85rem; }
+.btn-lg { padding: 16px 28px; font-size: 1.05rem; }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ===== BOTTOM NAV ===== */
+#bottom-nav {
+  position: fixed;
+  bottom: 0; right: 0; left: 0;
+  height: var(--nav-h);
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+}
+#bottom-nav .btn { flex: 1; font-size: 0.85rem; padding: 12px 8px; }
+#btn-save-nav {
+  flex: 0.7 !important;
+  background: #38A169; color: white;
+}
+
+/* ===== SECTION PAGES ===== */
+.section-page {
+  padding: 20px 16px 24px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: var(--radius);
+  color: var(--navy);
+}
+.section-header .section-icon { font-size: 2rem; }
+.section-header h2 { font-size: 1.2rem; font-weight: 700; }
+.section-header p { font-size: 0.85rem; color: var(--text-mid); margin-top: 2px; }
+
+/* Section color themes */
+.section-power { background: #EEF5FF; border-right: 5px solid #2E75B6; }
+.section-physical { background: #F0FFF4; border-right: 5px solid #38A169; }
+.section-access { background: #FFFAF0; border-right: 5px solid #DD6B20; }
+.section-future { background: #FAF5FF; border-right: 5px solid #805AD5; }
+.section-general { background: #F7FAFC; border-right: 5px solid #718096; }
+
+/* ===== QUESTION CARDS ===== */
+.q-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(203,213,224,0.5);
+}
+.q-label {
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.q-num {
+  background: var(--blue);
+  color: white;
+  font-size: 0.75rem; font-weight: 700;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Triple input row */
+.q-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 10px;
+}
+@media (max-width: 520px) {
+  .q-inputs { grid-template-columns: 1fr; gap: 8px; }
+}
+.q-input-group {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.q-input-group label {
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.q-input-group .sub-label-current { color: #2E75B6; }
+.q-input-group .sub-label-future { color: #805AD5; }
+.q-input-group .sub-label-notes { color: #718096; }
+
+/* Form inputs */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+  direction: rtl;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
+}
+input[type="number"] { text-align: center; }
+textarea { resize: vertical; min-height: 80px; }
+.input-with-unit {
+  position: relative;
+}
+.input-with-unit input { padding-left: 44px; }
+.input-unit {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--text-mid);
+  pointer-events: none;
+  background: #F7FAFC;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+/* ===== TOGGLE BUTTONS (yes/no) ===== */
+.toggle-group {
+  display: flex; gap: 8px;
+  flex-wrap: wrap;
+}
+.toggle-btn {
+  flex: 1;
+  min-width: 70px;
+  padding: 12px 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  font-family: inherit;
+  font-size: 0.9rem; font-weight: 600;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.toggle-btn:hover { border-color: var(--blue); color: var(--blue); }
+.toggle-btn.active-yes {
+  background: #C6F6D5; border-color: #38A169; color: #22543D;
+}
+.toggle-btn.active-no {
+  background: #FED7D7; border-color: #E53E3E; color: #742A2A;
+}
+.toggle-btn.active-na {
+  background: #E2E8F0; border-color: #718096; color: #2D3748;
+}
+.toggle-btn.active-partial {
+  background: #FEFCBF; border-color: #D69E2E; color: #744210;
+}
+
+/* ===== LAB INFO PAGE ===== */
+.info-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.info-card h3 {
+  font-size: 1rem; font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--blue-light);
+}
+.form-row {
+  margin-bottom: 14px;
+}
+.form-row label {
+  display: block;
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+}
+.form-row .required::after {
+  content: " *";
+  color: #E53E3E;
+}
+
+/* ===== FILE INPUTS ===== */
+.file-input-wrapper {
+  position: relative;
+}
+.file-input-wrapper input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%; height: 100%;
+  top: 0; left: 0;
+  cursor: pointer;
+}
+.file-input-display {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  color: var(--text-mid);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+  background: #F7FAFC;
+}
+.file-input-display:hover { border-color: var(--blue); background: #EBF4FF; }
+.file-input-display .file-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+.file-list { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.file-tag {
+  background: #EBF4FF; color: var(--blue);
+  padding: 4px 8px; border-radius: 6px;
+  font-size: 0.8rem; font-weight: 500;
+  display: flex; align-items: center; gap: 4px;
+}
+.file-tag button {
+  background: none; border: none;
+  color: var(--blue); cursor: pointer;
+  font-size: 0.85rem; padding: 0 2px;
+}
+
+/* ===== SUMMARY PAGE ===== */
+#screen-summary {
+  padding: 20px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.summary-header {
+  background: var(--navy);
+  color: white;
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.summary-header h2 { font-size: 1.3rem; font-weight: 700; }
+.summary-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.summary-section {
+  background: white;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.summary-section-title {
+  padding: 12px 16px;
+  font-weight: 700; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+.summary-table th {
+  background: #F7FAFC;
+  padding: 10px 12px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-mid);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+.summary-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #EDF2F7;
+  vertical-align: top;
+}
+.summary-table tr:last-child td { border-bottom: none; }
+.summary-table .q-name { font-weight: 600; color: var(--navy); width: 35%; }
+.summary-table .val-current { color: #2B6CB0; }
+.summary-table .val-future { color: #6B46C1; }
+.summary-table .val-notes { color: var(--text-mid); font-style: italic; }
+
+/* ===== OVERVIEW PAGE ===== */
+#screen-overview {
+  padding: 20px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.overview-table-wrap { overflow-x: auto; }
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+  min-width: 500px;
+}
+.overview-table th {
+  background: var(--navy);
+  color: white;
+  padding: 12px 10px;
+  text-align: right;
+  font-weight: 600;
+}
+.overview-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.overview-table .row-empty td { background: #F7FAFC; }
+.overview-table .row-partial td { background: #FFFFF0; }
+.overview-table .row-complete td { background: #F0FFF4; }
+.status-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-left: 6px;
+}
+
+/* ===== TOAST ===== */
+#toast {
+  position: fixed;
+  bottom: calc(var(--nav-h) + 16px);
+  right: 50%;
+  transform: translateX(50%);
+  background: #2D3748;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 0.9rem; font-weight: 500;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+#toast.show { opacity: 1; }
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  #app-header, #bottom-nav, #progress-bar-wrap, #toast { display: none !important; }
+  #main-content { margin: 0 !important; }
+  .screen { display: block !important; }
+  .screen:not(#screen-summary) { display: none !important; }
+  body { background: white; }
+  .summary-section { box-shadow: none; border: 1px solid #ddd; }
+  .btn { display: none !important; }
+}
+
+/* ===== SECTION TRANSITION ===== */
+.section-page {
+  animation: fadeSlide 0.25s ease;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SECTION TABS ===== */
+.section-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 6px;
+  padding: 12px 16px 0;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.section-tabs::-webkit-scrollbar { display: none; }
+.section-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 8px 8px 0 0;
+  font-family: inherit;
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-mid);
+  background: #F7FAFC;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  cursor: pointer;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.section-tab.active {
+  background: white;
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+/* Responsive */
+@media (max-width: 420px) {
+  .home-title h1 { font-size: 1.4rem; }
+  .lab-grid { grid-template-columns: repeat(2, 1fr); }
+  .q-card { padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== APP HEADER ===== -->
+<header id="app-header">
+  <div class="logo-area">
+    <div class="logo-dit">
+      <!-- DIT SVG Logo -->
+      <svg viewBox="0 0 80 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <text x="2" y="20" font-family="Arial" font-weight="900" font-size="22" fill="#1F3864">DIT</text>
+      </svg>
+    </div>
+  </div>
+  <div id="header-lab-name">סקר מעבדות - Check Point</div>
+  <div id="header-progress" style="display:none">0/34</div>
+</header>
+
+<!-- Progress bar -->
+<div id="progress-bar-wrap">
+  <div id="progress-bar-fill"></div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main id="main-content">
+
+  <!-- ======================================
+       SCREEN: HOME
+  ======================================= -->
+  <div id="screen-home" class="screen active">
+    <div style="padding:24px 16px; max-width:680px; margin:0 auto;">
+      <div class="home-title">
+        <div style="margin-bottom:12px;">
+          <!-- DIT Logo Graphic -->
+          <div style="display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:white;padding:10px 20px;border-radius:12px;">
+            <div style="background:white;border-radius:6px;padding:4px 10px;display:flex;align-items:center;gap:6px;">
+              <span style="font-size:1.1rem;font-weight:900;color:#1F3864;letter-spacing:-1px;">D<span style="color:#2E75B6;">I</span>T</span>
+            </div>
+            <span style="font-size:0.8rem;font-weight:500;opacity:0.85;letter-spacing:1px;">DESIGN IT RIGHT</span>
+          </div>
+        </div>
+        <h1>סקר מעבדות</h1>
+        <p>Check Point — הערכת תשתיות IT</p>
+        <span class="dit-badge">DIT — Design IT Right</span>
+      </div>
+
+      <p style="font-size:0.85rem;color:var(--text-mid);text-align:center;margin-bottom:20px;">בחר מעבדה להתחלת הסקר</p>
+
+      <div class="lab-grid" id="lab-grid">
+        <!-- Generated by JS -->
+      </div>
+
+      <div class="home-actions">
+        <button class="btn btn-secondary" onclick="showOverview()">📊 סיכום כל המעבדות</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">🗑 נקה הכל</button>
+      </div>
+
+      <div style="margin-top:20px;padding:12px;background:var(--blue-light);border-radius:var(--radius-sm);font-size:0.8rem;color:var(--navy);text-align:center;">
+        💾 הנתונים נשמרים אוטומטית במכשיר זה (localStorage)
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================
+       SCREEN: LAB SURVEY (Info + Sections)
+  ======================================= -->
+  <div id="screen-lab" class="screen">
+    <!-- Section Tabs -->
+    <div class="section-tabs" id="section-tabs">
+      <button class="section-tab active" onclick="goToSection(0)" id="tab-0">📋 מידע</button>
+      <button class="section-tab" onclick="goToSection(1)" id="tab-1">⚡ חשמל</button>
+      <button class="section-tab" onclick="goToSection(2)" id="tab-2">🏗 פיזיקלי</button>
+      <button class="section-tab" onclick="goToSection(3)" id="tab-3">🚪 גישה</button>
+      <button class="section-tab" onclick="goToSection(4)" id="tab-4">📈 עתידי</button>
+      <button class="section-tab" onclick="goToSection(5)" id="tab-5">📋 כללי</button>
+    </div>
+
+    <!-- Section 0: Lab Info -->
+    <div class="section-page" id="sec-0">
+      <div class="section-header section-general">
+        <span class="section-icon">📋</span>
+        <div>
+          <h2>פרטי המעבדה</h2>
+          <p>מידע בסיסי לזיהוי הסקר</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>זיהוי המעבדה</h3>
+        <div class="form-row">
+          <label class="required">שם מעבדה</label>
+          <input type="text" id="f-lab-name" data-field="lab_name" placeholder="לדוגמה: מעבדה 1 — רמת גן">
+        </div>
+        <div class="form-row">
+          <label class="required">תאריך הסקר</label>
+          <input type="date" id="f-date" data-field="survey_date">
+        </div>
+        <div class="form-row">
+          <label>שם מנהל המעבדה</label>
+          <input type="text" id="f-manager" data-field="manager_name" placeholder="שם מלא">
+        </div>
+        <div class="form-row">
+          <label>מלווה 1</label>
+          <input type="text" id="f-escort1" data-field="escort1" placeholder="שם ותפקיד">
+        </div>
+        <div class="form-row">
+          <label>מלווה 2</label>
+          <input type="text" id="f-escort2" data-field="escort2" placeholder="שם ותפקיד">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Power -->
+    <div class="section-page" id="sec-1" style="display:none">
+      <div class="section-header section-power">
+        <span class="section-icon">⚡</span>
+        <div>
+          <h2>תשתית חשמל ואנרגיה</h2>
+          <p>קיבולת, UPS, גנרטורים וחיבורים</p>
+        </div>
+      </div>
+
+      <!-- Q1 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">1</span> כמות מסדי תקשורת</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="number" min="0" data-q="q1" data-t="current" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="number" min="0" data-q="q1" data-t="future" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q1" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">2</span> כמות מסדי שרתים</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="number" min="0" data-q="q2" data-t="current" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="number" min="0" data-q="q2" data-t="future" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q2" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">3</span> הספק IT למסד תקשורת</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="input-with-unit">
+              <input type="text" data-q="q3" data-t="current" placeholder="0">
+              <span class="input-unit">kW</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <div class="input-with-unit">
+              <input type="text" data-q="q3" data-t="future" placeholder="0">
+              <span class="input-unit">kW</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q3" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">4</span> הספק IT למסד שרתים</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="input-with-unit">
+              <input type="text" data-q="q4" data-t="current" placeholder="0">
+              <span class="input-unit">kW</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <div class="input-with-unit">
+              <input type="text" data-q="q4" data-t="future" placeholder="0">
+              <span class="input-unit">kW</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q4" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">5</span> גודל חיבור חשמל למעבדה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="input-with-unit">
+              <input type="text" data-q="q5" data-t="current" placeholder="0">
+              <span class="input-unit">A/kVA</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <div class="input-with-unit">
+              <input type="text" data-q="q5" data-t="future" placeholder="0">
+              <span class="input-unit">A/kVA</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q5" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">8</span> חיבור UPS 1</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q8" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q8" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q8" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">9</span> חיבור UPS 2</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q9" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q9" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q9" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q10 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">10</span> חיבור גנרטור 1</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q10" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q10" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q10" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q11 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">11</span> חיבור גנרטור 2</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q11" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q11" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q11" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Physical -->
+    <div class="section-page" id="sec-2" style="display:none">
+      <div class="section-header section-physical">
+        <span class="section-icon">🏗</span>
+        <div>
+          <h2>פיזיקלי וסביבה</h2>
+          <p>תנאי מבנה, מיזוג ושטח</p>
+        </div>
+      </div>
+
+      <!-- Q6: Raised Floor (toggle) -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">6</span> רצפה צפה</div>
+        <div class="q-inputs">
+          <div class="q-input-group" style="grid-column:1/3">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="toggle-group" data-q="q6" data-t="current">
+              <button class="toggle-btn" data-val="כן" onclick="setToggle(this)">כן</button>
+              <button class="toggle-btn" data-val="לא" onclick="setToggle(this)">לא</button>
+              <button class="toggle-btn" data-val="לא רלוונטי" onclick="setToggle(this)">לא רלוונטי</button>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q6" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q7: Acoustic Ceiling (toggle) -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">7</span> תקרה אקוסטית</div>
+        <div class="q-inputs">
+          <div class="q-input-group" style="grid-column:1/3">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="toggle-group" data-q="q7" data-t="current">
+              <button class="toggle-btn" data-val="כן" onclick="setToggle(this)">כן</button>
+              <button class="toggle-btn" data-val="לא" onclick="setToggle(this)">לא</button>
+              <button class="toggle-btn" data-val="לא רלוונטי" onclick="setToggle(this)">לא רלוונטי</button>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q7" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q12 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">12</span> מיזוג אוויר עילי</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q12" data-t="current" placeholder="תיאור/כמות...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q12" data-t="future" placeholder="תיאור/כמות...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q12" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q13 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">13</span> מיזוג אוויר ייעודי</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q13" data-t="current" placeholder="תיאור/כמות...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q13" data-t="future" placeholder="תיאור/כמות...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q13" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q14 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">14</span> INROW</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q14" data-t="current" placeholder="תיאור/כמות...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q14" data-t="future" placeholder="תיאור/כמות...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q14" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q15: Generator backup for AC (toggle) -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">15</span> גיבוי גנרטור למערכת מיזוג אוויר</div>
+        <div class="q-inputs">
+          <div class="q-input-group" style="grid-column:1/3">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="toggle-group" data-q="q15" data-t="current">
+              <button class="toggle-btn" data-val="כן" onclick="setToggle(this)">כן</button>
+              <button class="toggle-btn" data-val="לא" onclick="setToggle(this)">לא</button>
+              <button class="toggle-btn" data-val="לא רלוונטי" onclick="setToggle(this)">לא רלוונטי</button>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q15" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q17 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">17</span> שטח המעבדה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="input-with-unit">
+              <input type="number" min="0" data-q="q17" data-t="current" placeholder="0">
+              <span class="input-unit">מ²</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <div class="input-with-unit">
+              <input type="number" min="0" data-q="q17" data-t="future" placeholder="0">
+              <span class="input-unit">מ²</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q17" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q18 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">18</span> גובה המעבדה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <div class="input-with-unit">
+              <input type="number" step="0.1" min="0" data-q="q18" data-t="current" placeholder="0">
+              <span class="input-unit">מטר</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <div class="input-with-unit">
+              <input type="number" step="0.1" min="0" data-q="q18" data-t="future" placeholder="0">
+              <span class="input-unit">מטר</span>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q18" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Access -->
+    <div class="section-page" id="sec-3" style="display:none">
+      <div class="section-header section-access">
+        <span class="section-icon">🚪</span>
+        <div>
+          <h2>גישה ושטח</h2>
+          <p>נגישות, מסדים ואזורי עבודה</p>
+        </div>
+      </div>
+
+      <!-- Q19 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">19</span> תדירות כניסה ויציאה מהמעבדה כללי</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q19" data-t="current" placeholder="לדוגמה: יומי / שבועי">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q19" data-t="future" placeholder="לדוגמה: יומי / שבועי">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q19" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q20 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">20</span> כמות מסדים לגישה ישירה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="number" min="0" data-q="q20" data-t="current" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="number" min="0" data-q="q20" data-t="future" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q20" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q21 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">21</span> כמות מסדים ללא גישה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="number" min="0" data-q="q21" data-t="current" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="number" min="0" data-q="q21" data-t="future" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q21" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q22: STAGING (yes/no/partial) -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">22</span> האם נדרשים חדרי STAGING</div>
+        <div class="q-inputs">
+          <div class="q-input-group" style="grid-column:1/3">
+            <label class="sub-label-current">מצב קיים / דרישה</label>
+            <div class="toggle-group" data-q="q22" data-t="current">
+              <button class="toggle-btn" data-val="כן" onclick="setToggle(this)">כן</button>
+              <button class="toggle-btn" data-val="חלקי" onclick="setToggle(this)">חלקי</button>
+              <button class="toggle-btn" data-val="לא" onclick="setToggle(this)">לא</button>
+              <button class="toggle-btn" data-val="לא רלוונטי" onclick="setToggle(this)">לא רלוונטי</button>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q22" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q23 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">23</span> האם נדרש מחסן ציוד — איזה גודל?</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q23" data-t="current" placeholder="גודל / תיאור">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q23" data-t="future" placeholder="גודל / תיאור">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q23" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q27: Workdesk (toggle) -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">27</span> שולחן עבודה</div>
+        <div class="q-inputs">
+          <div class="q-input-group" style="grid-column:1/3">
+            <label class="sub-label-current">קיים / נדרש</label>
+            <div class="toggle-group" data-q="q27" data-t="current">
+              <button class="toggle-btn" data-val="כן" onclick="setToggle(this)">כן</button>
+              <button class="toggle-btn" data-val="לא" onclick="setToggle(this)">לא</button>
+              <button class="toggle-btn" data-val="לא רלוונטי" onclick="setToggle(this)">לא רלוונטי</button>
+            </div>
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q27" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Future -->
+    <div class="section-page" id="sec-4" style="display:none">
+      <div class="section-header section-future">
+        <span class="section-icon">📈</span>
+        <div>
+          <h2>דרישות עתידיות</h2>
+          <p>תכנון קיבולת וצמיחה</p>
+        </div>
+      </div>
+
+      <!-- Q24 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">24</span> גידול נדרש במסדים</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q24" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q24" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q24" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q25 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">25</span> גידול נדרש בשטח</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q25" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q25" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q25" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q26 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">26</span> גידול נדרש בהספק</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="text" data-q="q26" data-t="current" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="text" data-q="q26" data-t="future" placeholder="תיאור...">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q26" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q28 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">28</span> דרישות מיוחדות נוספות</div>
+        <div class="q-input-group">
+          <label class="sub-label-notes">תיאור מפורט</label>
+          <textarea data-q="q28" data-t="current" placeholder="פרט דרישות מיוחדות..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Q29 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">29</span> כמות מסדים נדרשת בקומה לגישה ישירה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="number" min="0" data-q="q29" data-t="current" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="number" min="0" data-q="q29" data-t="future" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q29" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q30 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">30</span> כמות מסדים בתת״ק ללא גישה</div>
+        <div class="q-inputs">
+          <div class="q-input-group">
+            <label class="sub-label-current">מצב קיים</label>
+            <input type="number" min="0" data-q="q30" data-t="current" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-future">צורך עתידי</label>
+            <input type="number" min="0" data-q="q30" data-t="future" placeholder="0">
+          </div>
+          <div class="q-input-group">
+            <label class="sub-label-notes">הערות</label>
+            <input type="text" data-q="q30" data-t="notes" placeholder="הערות...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Q31 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">31</span> דרישות מיוחדות לעבודה בתת״ק</div>
+        <div class="q-input-group">
+          <label class="sub-label-notes">תיאור מפורט</label>
+          <textarea data-q="q31" data-t="current" placeholder="פרט דרישות..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Q32 -->
+      <div class="q-card">
+        <div class="q-label"><span class="q-num">32</span> דרישות מיוחדות לעבודה במבנה העילי</div>
+        <div class="q-input-group">
+          <label class="sub-label-notes">תיאור מפורט</label>
+          <textarea data-q="q32" data-t="current" placeholder="פרט דרישות..." rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: General -->
+    <div class="section-page" id="sec-5" style="display:none">
+      <div class="section-header section-general">
+        <span class="section-icon">📋</span>
+        <div>
+          <h2>כללי ותיעוד</h2>
+          <p>תמונות, בעיות ומידע נוסף</p>
+        </div>
+      </div>
+
+      <!-- Photo: General -->
+      <div class="q-card">
+        <div class="q-label">📷 תמונות — כלליות</div>
+        <div class="file-input-wrapper" id="wrap-photos-general">
+          <input type="file" accept="image/*" capture="environment" multiple
+            id="input-photos-general" onchange="handleFiles(this,'photos_general')">
+          <div class="file-input-display">
+            <span class="file-icon">📷</span>
+            <strong>הוסף תמונות כלליות</strong><br>
+            <small>לחץ לבחירה מהגלריה או צלם</small>
+          </div>
+        </div>
+        <div class="file-list" id="list-photos-general"></div>
+      </div>
+
+      <!-- Photo: Channels -->
+      <div class="q-card">
+        <div class="q-label">📷 תמונות — מיקומי תעלות</div>
+        <div class="file-input-wrapper" id="wrap-photos-channels">
+          <input type="file" accept="image/*" capture="environment" multiple
+            id="input-photos-channels" onchange="handleFiles(this,'photos_channels')">
+          <div class="file-input-display">
+            <span class="file-icon">📷</span>
+            <strong>תמונות תעלות</strong><br>
+            <small>לחץ לבחירה מהגלריה או צלם</small>
+          </div>
+        </div>
+        <div class="file-list" id="list-photos-channels"></div>
+      </div>
+
+      <!-- Photo: Meters -->
+      <div class="q-card">
+        <div class="q-label">📷 תמונות — מוני חשמל</div>
+        <div class="file-input-wrapper" id="wrap-photos-meters">
+          <input type="file" accept="image/*" capture="environment" multiple
+            id="input-photos-meters" onchange="handleFiles(this,'photos_meters')">
+          <div class="file-input-display">
+            <span class="file-icon">📷</span>
+            <strong>תמונות מוני חשמל</strong><br>
+            <small>לחץ לבחירה מהגלריה או צלם</small>
+          </div>
+        </div>
+        <div class="file-list" id="list-photos-meters"></div>
+      </div>
+
+      <!-- Issues -->
+      <div class="q-card">
+        <div class="q-label">⚠️ בעיות שזוהו</div>
+        <div class="q-input-group">
+          <label class="sub-label-notes">תיאור בעיות</label>
+          <textarea data-q="q_issues" data-t="current"
+            placeholder="פרט בעיות, ממצאים חריגים, דגלים אדומים..." rows="5"
+            style="min-height:120px;"></textarea>
+        </div>
+      </div>
+
+      <!-- Summary button -->
+      <div style="text-align:center;margin-top:8px;">
+        <button class="btn btn-navy btn-lg" onclick="showSummary()">
+          📊 צפה בסיכום המעבדה
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================
+       SCREEN: SUMMARY (per lab)
+  ======================================= -->
+  <div id="screen-summary" class="screen">
+    <div id="summary-content" style="padding:20px 16px;max-width:900px;margin:0 auto;">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ======================================
+       SCREEN: OVERVIEW (all labs)
+  ======================================= -->
+  <div id="screen-overview" class="screen">
+    <div style="padding:20px 16px;max-width:900px;margin:0 auto;">
+      <div class="summary-header">
+        <div>
+          <h2>📊 סיכום כל המעבדות</h2>
+          <p style="font-size:0.85rem;opacity:0.8;margin-top:4px;">מבט על — כל 7 המעבדות</p>
+        </div>
+        <div class="summary-actions">
+          <button class="btn btn-secondary btn-sm" onclick="exportAllJSON()">⬇️ ייצא JSON</button>
+          <button class="btn btn-secondary btn-sm" onclick="goHome()">🏠 בית</button>
+        </div>
+      </div>
+      <div class="overview-table-wrap">
+        <table class="overview-table" id="overview-table">
+          <thead>
+            <tr>
+              <th>מעבדה</th>
+              <th>תאריך</th>
+              <th>מנהל</th>
+              <th>מסדי תקשורת</th>
+              <th>מסדי שרתים</th>
+              <th>שטח (מ²)</th>
+              <th>שדות מולאו</th>
+              <th>סטטוס</th>
+            </tr>
+          </thead>
+          <tbody id="overview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav id="bottom-nav">
+  <button class="btn btn-secondary" id="btn-back" onclick="navBack()">◀ הקודם</button>
+  <button class="btn btn-secondary" id="btn-home-nav" onclick="goHome()">🏠</button>
+  <button class="btn btn-primary" id="btn-next" onclick="navNext()">הבא ▶</button>
+  <button class="btn" id="btn-save-nav" onclick="saveNow()">💾 שמור</button>
+</nav>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+'use strict';
+
+// ============================================================
+// STATE
+// ============================================================
+const STORAGE_KEY = 'checkpoint_lab_survey';
+const NUM_LABS = 7;
+const TOTAL_Q = 34;
+
+let state = {
+  currentScreen: 'home',  // home | lab | summary | overview
+  currentLab: null,       // 1..7
+  currentSection: 0,      // 0..5
+  data: {}                // { lab1: {fieldKey: val, ...}, ... }
+};
+
+// Question metadata for summary display
+const Q_META = [
+  { id:'q1',  label:'כמות מסדי תקשורת',         section:'power',    hasTriple:true },
+  { id:'q2',  label:'כמות מסדי שרתים',           section:'power',    hasTriple:true },
+  { id:'q3',  label:'הספק IT למסד תקשורת',        section:'power',    hasTriple:true },
+  { id:'q4',  label:'הספק IT למסד שרתים',         section:'power',    hasTriple:true },
+  { id:'q5',  label:'גודל חיבור חשמל',            section:'power',    hasTriple:true },
+  { id:'q6',  label:'רצפה צפה',                  section:'physical', hasTriple:false, isToggle:true },
+  { id:'q7',  label:'תקרה אקוסטית',               section:'physical', hasTriple:false, isToggle:true },
+  { id:'q8',  label:'חיבור UPS 1',               section:'power',    hasTriple:true },
+  { id:'q9',  label:'חיבור UPS 2',               section:'power',    hasTriple:true },
+  { id:'q10', label:'חיבור גנרטור 1',             section:'power',    hasTriple:true },
+  { id:'q11', label:'חיבור גנרטור 2',             section:'power',    hasTriple:true },
+  { id:'q12', label:'מיזוג אוויר עילי',           section:'physical', hasTriple:true },
+  { id:'q13', label:'מיזוג אוויר ייעודי',          section:'physical', hasTriple:true },
+  { id:'q14', label:'INROW',                      section:'physical', hasTriple:true },
+  { id:'q15', label:'גיבוי גנרטור למיזוג',        section:'physical', hasTriple:false, isToggle:true },
+  { id:'q17', label:'שטח המעבדה',                 section:'physical', hasTriple:true },
+  { id:'q18', label:'גובה המעבדה',                section:'physical', hasTriple:true },
+  { id:'q19', label:'תדירות כניסה ויציאה',        section:'access',   hasTriple:true },
+  { id:'q20', label:'מסדים לגישה ישירה',          section:'access',   hasTriple:true },
+  { id:'q21', label:'מסדים ללא גישה',             section:'access',   hasTriple:true },
+  { id:'q22', label:'חדרי STAGING',               section:'access',   hasTriple:false, isToggle:true },
+  { id:'q23', label:'מחסן ציוד',                  section:'access',   hasTriple:true },
+  { id:'q24', label:'גידול נדרש במסדים',          section:'future',   hasTriple:true },
+  { id:'q25', label:'גידול נדרש בשטח',            section:'future',   hasTriple:true },
+  { id:'q26', label:'גידול נדרש בהספק',           section:'future',   hasTriple:true },
+  { id:'q27', label:'שולחן עבודה',                section:'access',   hasTriple:false, isToggle:true },
+  { id:'q28', label:'דרישות מיוחדות נוספות',      section:'future',   hasTriple:false, isTextarea:true },
+  { id:'q29', label:'מסדים בקומה — גישה ישירה',   section:'future',   hasTriple:true },
+  { id:'q30', label:'מסדים בתת״ק ללא גישה',       section:'future',   hasTriple:true },
+  { id:'q31', label:'דרישות לעבודה בתת״ק',        section:'future',   hasTriple:false, isTextarea:true },
+  { id:'q32', label:'דרישות לעבודה בעילי',        section:'future',   hasTriple:false, isTextarea:true },
+  { id:'q_issues', label:'בעיות שזוהו',           section:'general',  hasTriple:false, isTextarea:true },
+];
+
+const SECTION_META = {
+  power:    { name:'תשתית חשמל ואנרגיה', icon:'⚡', color:'#BDD7EE' },
+  physical: { name:'פיזיקלי וסביבה',      icon:'🏗', color:'#C6EFCE' },
+  access:   { name:'גישה ושטח',           icon:'🚪', color:'#FCE4D6' },
+  future:   { name:'דרישות עתידיות',      icon:'📈', color:'#E2C9E8' },
+  general:  { name:'כללי ותיעוד',          icon:'📋', color:'#D9D9D9' },
+};
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  setDefaultDate();
+  renderLabGrid();
+  setupInputListeners();
+  updateHeader();
+  updateBottomNav();
+});
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.data = JSON.parse(raw);
+  } catch(e) { state.data = {}; }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+  } catch(e) { console.warn('Storage full'); }
+}
+
+function setDefaultDate() {
+  const today = new Date().toISOString().split('T')[0];
+  const df = document.getElementById('f-date');
+  if (df) df.value = today;
+}
+
+// ============================================================
+// LAB GRID
+// ============================================================
+function renderLabGrid() {
+  const grid = document.getElementById('lab-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 1; i <= NUM_LABS; i++) {
+    const key = 'lab' + i;
+    const labData = state.data[key] || {};
+    const { status, label } = getLabStatus(labData);
+    const btn = document.createElement('button');
+    btn.className = 'lab-btn';
+    btn.innerHTML = `
+      <span class="lab-icon">🔬</span>
+      <span class="lab-name">מעבדה ${i}</span>
+      <span class="lab-badge badge-${status}">${label}</span>
+    `;
+    btn.onclick = () => selectLab(i);
+    grid.appendChild(btn);
+  }
+}
+
+function getLabStatus(labData) {
+  const fields = Object.values(labData).filter(v => v && String(v).trim() !== '');
+  const count = fields.length;
+  if (count === 0) return { status: 'empty', label: 'ריק' };
+  const pct = count / TOTAL_Q;
+  if (pct >= 0.9) return { status: 'complete', label: 'הושלם' };
+  return { status: 'partial', label: 'בתהליך' };
+}
+
+function countFilledFields(labData) {
+  return Object.values(labData || {}).filter(v => v && String(v).trim() !== '').length;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  state.currentScreen = name;
+  updateHeader();
+  updateBottomNav();
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  renderLabGrid();
+  showScreen('home');
+}
+
+function selectLab(labNum) {
+  state.currentLab = labNum;
+  state.currentSection = 0;
+  showScreen('lab');
+  goToSection(0);
+  populateLabFields();
+  updateProgress();
+}
+
+function goToSection(secIdx) {
+  state.currentSection = secIdx;
+  // Hide all section pages
+  for (let i = 0; i <= 5; i++) {
+    const el = document.getElementById('sec-' + i);
+    if (el) el.style.display = (i === secIdx) ? 'block' : 'none';
+  }
+  // Update tabs
+  document.querySelectorAll('.section-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === secIdx);
+  });
+  updateBottomNav();
+  window.scrollTo(0, 0);
+}
+
+function navNext() {
+  if (state.currentScreen === 'lab') {
+    if (state.currentSection < 5) {
+      goToSection(state.currentSection + 1);
+    } else {
+      showSummary();
+    }
+  } else if (state.currentScreen === 'summary') {
+    goHome();
+  }
+}
+
+function navBack() {
+  if (state.currentScreen === 'lab') {
+    if (state.currentSection > 0) {
+      goToSection(state.currentSection - 1);
+    } else {
+      goHome();
+    }
+  } else if (state.currentScreen === 'summary') {
+    selectLab(state.currentLab);
+  } else if (state.currentScreen === 'overview') {
+    goHome();
+  }
+}
+
+function updateBottomNav() {
+  const backBtn = document.getElementById('btn-back');
+  const nextBtn = document.getElementById('btn-next');
+  const saveBtn = document.getElementById('btn-save-nav');
+  const homeBtn = document.getElementById('btn-home-nav');
+
+  if (state.currentScreen === 'home') {
+    backBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    saveBtn.style.display = 'none';
+    homeBtn.style.display = 'none';
+  } else if (state.currentScreen === 'lab') {
+    backBtn.style.display = 'flex';
+    nextBtn.style.display = 'flex';
+    saveBtn.style.display = 'flex';
+    homeBtn.style.display = 'flex';
+    backBtn.textContent = state.currentSection === 0 ? '🏠 בית' : '◀ הקודם';
+    nextBtn.textContent = state.currentSection === 5 ? 'סיכום 📊' : 'הבא ▶';
+  } else {
+    backBtn.style.display = 'flex';
+    nextBtn.style.display = 'none';
+    saveBtn.style.display = 'none';
+    homeBtn.style.display = 'flex';
+    backBtn.textContent = '◀ חזור';
+  }
+}
+
+function updateHeader() {
+  const labNameEl = document.getElementById('header-lab-name');
+  const progressEl = document.getElementById('header-progress');
+
+  if (state.currentScreen === 'home') {
+    labNameEl.textContent = 'סקר מעבדות — Check Point';
+    progressEl.style.display = 'none';
+  } else if (state.currentScreen === 'lab' && state.currentLab) {
+    const labData = state.data['lab' + state.currentLab] || {};
+    const labName = labData.lab_name || ('מעבדה ' + state.currentLab);
+    labNameEl.textContent = labName;
+    const filled = countFilledFields(labData);
+    progressEl.textContent = filled + '/' + TOTAL_Q;
+    progressEl.style.display = 'flex';
+  } else if (state.currentScreen === 'summary') {
+    labNameEl.textContent = 'סיכום מעבדה';
+    progressEl.style.display = 'none';
+  } else {
+    labNameEl.textContent = 'סיכום כל המעבדות';
+    progressEl.style.display = 'none';
+  }
+}
+
+function updateProgress() {
+  if (!state.currentLab) return;
+  const labData = state.data['lab' + state.currentLab] || {};
+  const filled = countFilledFields(labData);
+  const pct = Math.min(100, Math.round((filled / TOTAL_Q) * 100));
+  document.getElementById('progress-bar-fill').style.width = pct + '%';
+  updateHeader();
+}
+
+// ============================================================
+// FIELD POPULATION & SAVING
+// ============================================================
+function getLabKey() {
+  return 'lab' + state.currentLab;
+}
+
+function getLabData() {
+  if (!state.data[getLabKey()]) state.data[getLabKey()] = {};
+  return state.data[getLabKey()];
+}
+
+function populateLabFields() {
+  const labData = getLabData();
+
+  // Info fields
+  ['lab_name','survey_date','manager_name','escort1','escort2'].forEach(field => {
+    const el = document.querySelector(`[data-field="${field}"]`);
+    if (el) el.value = labData[field] || '';
+  });
+
+  // If no date set, default to today
+  const dateEl = document.querySelector('[data-field="survey_date"]');
+  if (dateEl && !dateEl.value) {
+    dateEl.value = new Date().toISOString().split('T')[0];
+  }
+
+  // Question inputs
+  document.querySelectorAll('[data-q][data-t]').forEach(el => {
+    const q = el.getAttribute('data-q');
+    const t = el.getAttribute('data-t');
+    const key = q + '_' + t;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.value = labData[key] || '';
+    }
+  });
+
+  // Toggles
+  document.querySelectorAll('.toggle-group').forEach(group => {
+    const q = group.getAttribute('data-q');
+    const t = group.getAttribute('data-t');
+    const key = q + '_' + t;
+    const val = labData[key] || '';
+    group.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.classList.remove('active-yes','active-no','active-na','active-partial');
+      if (btn.getAttribute('data-val') === val) {
+        applyToggleStyle(btn, val);
+      }
+    });
+  });
+
+  // File names (just display, not re-load actual files)
+  ['photos_general','photos_channels','photos_meters'].forEach(field => {
+    const names = labData[field + '_names'] || [];
+    renderFileList(field, names);
+  });
+
+  updateProgress();
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveData();
+    updateProgress();
+    showToast('נשמר ✓');
+  }, 500);
+}
+
+function saveNow() {
+  saveData();
+  updateProgress();
+  renderLabGrid();
+  showToast('נשמר בהצלחה ✓');
+}
+
+function setupInputListeners() {
+  document.addEventListener('input', e => {
+    const el = e.target;
+
+    // Info fields
+    if (el.hasAttribute('data-field') && state.currentLab) {
+      const field = el.getAttribute('data-field');
+      getLabData()[field] = el.value;
+      scheduleSave();
+      if (field === 'lab_name') updateHeader();
+    }
+
+    // Question fields
+    if (el.hasAttribute('data-q') && el.hasAttribute('data-t') && state.currentLab) {
+      const q = el.getAttribute('data-q');
+      const t = el.getAttribute('data-t');
+      getLabData()[q + '_' + t] = el.value;
+      scheduleSave();
+    }
+  });
+}
+
+// ============================================================
+// TOGGLE BUTTONS
+// ============================================================
+function setToggle(btn) {
+  if (!state.currentLab) return;
+  const group = btn.closest('.toggle-group');
+  if (!group) return;
+  const q = group.getAttribute('data-q');
+  const t = group.getAttribute('data-t');
+  const val = btn.getAttribute('data-val');
+
+  // Deselect all in group
+  group.querySelectorAll('.toggle-btn').forEach(b => {
+    b.classList.remove('active-yes','active-no','active-na','active-partial');
+  });
+
+  // Check if clicking same value = deselect
+  const current = getLabData()[q + '_' + t];
+  if (current === val) {
+    getLabData()[q + '_' + t] = '';
+  } else {
+    getLabData()[q + '_' + t] = val;
+    applyToggleStyle(btn, val);
+  }
+  scheduleSave();
+}
+
+function applyToggleStyle(btn, val) {
+  if (val === 'כן') btn.classList.add('active-yes');
+  else if (val === 'לא') btn.classList.add('active-no');
+  else if (val === 'לא רלוונטי') btn.classList.add('active-na');
+  else if (val === 'חלקי') btn.classList.add('active-partial');
+}
+
+// ============================================================
+// FILE HANDLING
+// ============================================================
+function handleFiles(input, field) {
+  if (!state.currentLab) return;
+  const files = Array.from(input.files);
+  const names = files.map(f => f.name);
+  const existing = getLabData()[field + '_names'] || [];
+  const allNames = [...existing, ...names];
+  getLabData()[field + '_names'] = allNames;
+  renderFileList(field, allNames);
+  scheduleSave();
+}
+
+function renderFileList(field, names) {
+  const listEl = document.getElementById('list-' + field);
+  if (!listEl) return;
+  listEl.innerHTML = names.map((n, i) => `
+    <span class="file-tag">
+      📎 ${n}
+      <button onclick="removeFile('${field}',${i})" title="הסר">✕</button>
+    </span>
+  `).join('');
+}
+
+function removeFile(field, idx) {
+  if (!state.currentLab) return;
+  const names = getLabData()[field + '_names'] || [];
+  names.splice(idx, 1);
+  getLabData()[field + '_names'] = names;
+  renderFileList(field, names);
+  scheduleSave();
+}
+
+// ============================================================
+// SUMMARY PAGE (per lab)
+// ============================================================
+function showSummary() {
+  if (!state.currentLab) return;
+  renderSummary();
+  showScreen('summary');
+}
+
+function renderSummary() {
+  const labData = state.data[getLabKey()] || {};
+  const labName = labData.lab_name || ('מעבדה ' + state.currentLab);
+  const container = document.getElementById('summary-content');
+
+  // Group questions by section
+  const sections = {};
+  Q_META.forEach(q => {
+    if (!sections[q.section]) sections[q.section] = [];
+    sections[q.section].push(q);
+  });
+
+  let html = `
+    <div class="summary-header">
+      <div>
+        <h2>📊 ${labName}</h2>
+        <p style="font-size:0.85rem;opacity:0.8;margin-top:4px;">
+          תאריך: ${labData.survey_date || '—'} &nbsp;|&nbsp;
+          מנהל: ${labData.manager_name || '—'}
+        </p>
+      </div>
+      <div class="summary-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 הדפס</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportLabJSON()">⬇️ JSON</button>
+        <button class="btn btn-primary btn-sm" onclick="selectLab(${state.currentLab})">✏️ ערוך</button>
+      </div>
+    </div>
+  `;
+
+  Object.entries(sections).forEach(([secKey, qs]) => {
+    const meta = SECTION_META[secKey];
+    html += `
+      <div class="summary-section">
+        <div class="summary-section-title" style="background:${meta.color};">
+          ${meta.icon} ${meta.name}
+        </div>
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>שאלה</th>
+              <th>מצב קיים</th>
+              <th>צורך עתידי</th>
+              <th>הערות</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    qs.forEach(q => {
+      const cur = labData[q.id + '_current'] || '—';
+      const fut = labData[q.id + '_future'] || '—';
+      const notes = labData[q.id + '_notes'] || '—';
+      html += `
+        <tr>
+          <td class="q-name">${q.label}</td>
+          <td class="val-current">${cur}</td>
+          <td class="val-future">${q.hasTriple || q.isToggle ? fut : '—'}</td>
+          <td class="val-notes">${notes}</td>
+        </tr>
+      `;
+    });
+    html += `</tbody></table></div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ============================================================
+// OVERVIEW PAGE (all labs)
+// ============================================================
+function showOverview() {
+  renderOverview();
+  showScreen('overview');
+}
+
+function renderOverview() {
+  const tbody = document.getElementById('overview-tbody');
+  let rows = '';
+  for (let i = 1; i <= NUM_LABS; i++) {
+    const key = 'lab' + i;
+    const d = state.data[key] || {};
+    const { status } = getLabStatus(d);
+    const filled = countFilledFields(d);
+    const rowClass = status === 'empty' ? 'row-empty' : status === 'complete' ? 'row-complete' : 'row-partial';
+    const dotColor = status === 'empty' ? '#CBD5E0' : status === 'complete' ? '#38A169' : '#D69E2E';
+    rows += `
+      <tr class="${rowClass}" onclick="selectLab(${i})" style="cursor:pointer;">
+        <td><strong>${d.lab_name || 'מעבדה ' + i}</strong></td>
+        <td>${d.survey_date || '—'}</td>
+        <td>${d.manager_name || '—'}</td>
+        <td>${d.q1_current || '—'}</td>
+        <td>${d.q2_current || '—'}</td>
+        <td>${d.q17_current || '—'}</td>
+        <td>${filled}/${TOTAL_Q}</td>
+        <td><span class="status-dot" style="background:${dotColor};"></span>${status === 'empty' ? 'ריק' : status === 'complete' ? 'הושלם' : 'בתהליך'}</td>
+      </tr>
+    `;
+  }
+  tbody.innerHTML = rows;
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportLabJSON() {
+  const labData = state.data[getLabKey()] || {};
+  const labName = labData.lab_name || ('מעבדה ' + state.currentLab);
+  const date = new Date().toISOString().split('T')[0];
+  const filename = `checkpoint_survey_lab${state.currentLab}_${date}.json`;
+  downloadJSON({ lab: state.currentLab, name: labName, data: labData }, filename);
+}
+
+function exportAllJSON() {
+  const date = new Date().toISOString().split('T')[0];
+  downloadJSON(state.data, `checkpoint_survey_${date}.json`);
+  showToast('ייצוא הושלם ✓');
+}
+
+function downloadJSON(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// CLEAR DATA
+// ============================================================
+function confirmClearAll() {
+  if (confirm('האם לנקות את כל הנתונים? פעולה זו אינה ניתנת לביטול.')) {
+    state.data = {};
+    localStorage.removeItem(STORAGE_KEY);
+    renderLabGrid();
+    showToast('כל הנתונים נמחקו');
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

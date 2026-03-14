@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>צפייה בסקר מעבדות — Check Point</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', Arial, sans-serif; background: #F0F4F8; color: #1A2B4A; direction: rtl; min-height: 100vh; }
+:root { --navy: #1F3864; --blue: #2E75B6; --border: #CBD5E0; --shadow: 0 2px 8px rgba(31,56,100,0.10); --radius: 12px; }
+#header { background: var(--navy); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+#header h1 { font-size: 1.2rem; font-weight: 700; }
+.badge { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; }
+#toolbar { background: white; border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: white; color: var(--navy); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: #EBF4FF; border-color: var(--blue); }
+.btn-primary { background: var(--blue); color: white; border-color: var(--blue); }
+.btn-primary:hover { background: #1E5C9B; }
+#loading { text-align: center; padding: 60px 20px; color: #718096; }
+.spinner { width: 36px; height: 36px; border: 3px solid #CBD5E0; border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#content { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+.stats-bar { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 28px; }
+.stat-card { background: white; border-radius: var(--radius); padding: 16px; text-align: center; box-shadow: var(--shadow); }
+.stat-num { font-size: 2rem; font-weight: 800; color: var(--navy); }
+.stat-label { font-size: 0.78rem; color: #718096; margin-top: 4px; }
+.stat-card.complete .stat-num { color: #38A169; }
+.stat-card.partial .stat-num { color: #D69E2E; }
+.stat-card.empty .stat-num { color: #CBD5E0; }
+.table-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 24px; }
+.table-title { background: var(--navy); color: white; padding: 14px 20px; font-size: 1rem; font-weight: 700; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { background: #F7FAFC; padding: 10px 14px; text-align: right; font-weight: 700; color: #4A5568; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid #EDF2F7; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #F7FAFC; }
+.lab-name-cell { font-weight: 700; color: var(--navy); }
+.status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+.badge-complete { background: #C6F6D5; color: #22543D; }
+.badge-partial  { background: #FEFCBF; color: #744210; }
+.badge-empty    { background: #EDF2F7; color: #718096; }
+.lab-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.lab-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.lab-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(31,56,100,0.15); }
+.lab-card-header { background: var(--navy); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+.lab-card-header h3 { font-size: 1rem; font-weight: 700; }
+.lab-card-body { padding: 14px 16px; }
+.lab-meta { font-size: 0.8rem; color: #718096; margin-bottom: 10px; }
+.q-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F0F4F8; font-size: 0.82rem; }
+.q-row:last-child { border-bottom: none; }
+.q-label { color: #4A5568; }
+.q-val { font-weight: 600; color: var(--navy); }
+#modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; overflow-y: auto; padding: 20px; }
+#modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
+#modal { background: white; border-radius: var(--radius); max-width: 800px; width: 100%; margin: auto; overflow: hidden; }
+#modal-header { background: var(--navy); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+#modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+#modal-close { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; }
+#modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+.sec-block { margin-bottom: 20px; }
+.sec-title { font-size: 0.9rem; font-weight: 700; color: white; padding: 8px 14px; border-radius: 8px; margin-bottom: 10px; }
+.sec-power { background: #2E75B6; } .sec-physical { background: #38A169; } .sec-access { background: #DD6B20; } .sec-future { background: #805AD5; } .sec-general { background: #718096; }
+.modal-q-row { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #EDF2F7; font-size: 0.82rem; align-items: start; }
+.modal-q-row:last-child { border-bottom: none; }
+.modal-q-row.header { background: #F7FAFC; font-weight: 700; font-size: 0.75rem; color: #4A5568; border-radius: 6px; margin-bottom: 4px; }
+.val-cur { color: #2B6CB0; font-weight: 600; } .val-fut { color: #6B46C1; font-weight: 600; } .val-note { color: #718096; font-style: italic; }
+@media print { #header, #toolbar { position: static; } #modal-overlay { display: none !important; } .btn { display: none; } }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <h1>📊 סקר מעבדות — Check Point</h1>
+    <div class="badge" id="last-updated">טוען...</div>
+  </div>
+  <button class="btn btn-primary" onclick="loadData()">🔄 רענן</button>
+</div>
+
+<div id="toolbar">
+  <button class="btn" onclick="showView('overview')">📋 טבלה</button>
+  <button class="btn" onclick="showView('cards')">🗂 כרטיסיות</button>
+  <button class="btn" onclick="exportCSV()">⬇️ ייצוא CSV</button>
+  <button class="btn" onclick="window.print()">🖨 הדפס</button>
+</div>
+
+<div id="loading"><div class="spinner"></div>טוען נתונים מהשרת...</div>
+<div id="content" style="display:none"></div>
+
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <div id="modal-header">
+      <h2 id="modal-title">פרטי מעבדה</h2>
+      <button id="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+'use strict';
+const firebaseConfig = {
+  apiKey: "AIzaSyD2xTg33rxgE1hrejhUxzYvKFFROnDpoio",
+  authDomain: "checkpoint-labs-89d8c.firebaseapp.com",
+  projectId: "checkpoint-labs-89d8c",
+  storageBucket: "checkpoint-labs-89d8c.firebasestorage.app",
+  messagingSenderId: "218324722139",
+  appId: "1:218324722139:web:90ac7944bd64b19a3307fe"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const NUM_LABS = 7;
+let allData = {};
+let currentView = 'overview';
+
+const Q_META = [
+  { id:'q1',  label:'כמות מסדי תקשורת',       section:'power',    hasTriple:true },
+  { id:'q2',  label:'כמות מסדי שרתים',         section:'power',    hasTriple:true },
+  { id:'q3',  label:'הספק IT למסד תקשורת',     section:'power',    hasTriple:true },
+  { id:'q4',  label:'הספק IT למסד שרתים',      section:'power',    hasTriple:true },
+  { id:'q5',  label:'גודל חיבור חשמל',          section:'power',    hasTriple:true },
+  { id:'q6',  label:'רצפה צפה',                section:'physical', isToggle:true },
+  { id:'q7',  label:'תקרה אקוסטית',             section:'physical', isToggle:true },
+  { id:'q8',  label:'חיבור UPS 1',             section:'power',    hasTriple:true },
+  { id:'q9',  label:'חיבור UPS 2',             section:'power',    hasTriple:true },
+  { id:'q10', label:'חיבור גנרטור 1',           section:'power',    hasTriple:true },
+  { id:'q11', label:'חיבור גנרטור 2',           section:'power',    hasTriple:true },
+  { id:'q12', label:'מיזוג אוויר עילי',         section:'physical', hasTriple:true },
+  { id:'q13', label:'מיזוג אוויר ייעודי',        section:'physical', hasTriple:true },
+  { id:'q14', label:'INROW',                    section:'physical', hasTriple:true },
+  { id:'q15', label:'גיבוי גנרטור למיזוג',      section:'physical', isToggle:true },
+  { id:'q17', label:'שטח המעבדה',               section:'physical', hasTriple:true },
+  { id:'q18', label:'גובה המעבדה',              section:'physical', hasTriple:true },
+  { id:'q19', label:'תדירות כניסה ויציאה',      section:'access',   hasTriple:true },
+  { id:'q20', label:'מסדים לגישה ישירה',        section:'access',   hasTriple:true },
+  { id:'q21', label:'מסדים ללא גישה',           section:'access',   hasTriple:true },
+  { id:'q22', label:'חדרי STAGING',             section:'access',   isToggle:true },
+  { id:'q23', label:'מחסן ציוד',                section:'access',   hasTriple:true },
+  { id:'q24', label:'גידול נדרש במסדים',        section:'future',   hasTriple:true },
+  { id:'q25', label:'גידול נדרש בשטח',          section:'future',   hasTriple:true },
+  { id:'q26', label:'גידול נדרש בהספק',         section:'future',   hasTriple:true },
+  { id:'q27', label:'שולחן עבודה',              section:'access',   isToggle:true },
+  { id:'q28', label:'דרישות מיוחדות נוספות',    section:'future',   isTextarea:true },
+  { id:'q29', label:'מסדים בקומה — גישה ישירה', section:'future',   hasTriple:true },
+  { id:'q30', label:'מסדים בתת״ק ללא גישה',     section:'future',   hasTriple:true },
+  { id:'q31', label:'דרישות לעבודה בתת״ק',      section:'future',   isTextarea:true },
+  { id:'q32', label:'דרישות לעבודה בעילי',      section:'future',   isTextarea:true },
+  { id:'q_issues', label:'בעיות שזוהו',         section:'general',  isTextarea:true },
+];
+
+const SECTION_META = {
+  power:    { name:'תשתית חשמל ואנרגיה', icon:'⚡', cls:'sec-power' },
+  physical: { name:'פיזיקלי וסביבה',     icon:'🏗', cls:'sec-physical' },
+  access:   { name:'גישה ושטח',          icon:'🚪', cls:'sec-access' },
+  future:   { name:'דרישות עתידיות',     icon:'📈', cls:'sec-future' },
+  general:  { name:'כללי ותיעוד',         icon:'📋', cls:'sec-general' },
+};
+
+function getLabStatus(d) {
+  const count = Object.values(d||{}).filter(v=>v&&String(v).trim()).length;
+  if (count===0) return 'empty';
+  if (count/34>=0.9) return 'complete';
+  return 'partial';
+}
+
+async function loadData() {
+  document.getElementById('loading').style.display='block';
+  document.getElementById('content').style.display='none';
+  try {
+    const snap = await db.collection('surveys').get();
+    allData = {};
+    snap.forEach(doc => { allData[doc.id] = doc.data(); });
+    document.getElementById('last-updated').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL');
+    render();
+  } catch(e) {
+    document.getElementById('loading').innerHTML = '<p style="padding:40px;text-align:center;color:#E53E3E">⚠️ שגיאה בטעינה. נסה לרענן.</p>';
+  }
+}
+
+function showView(v) { currentView=v; render(); }
+
+function render() {
+  document.getElementById('loading').style.display='none';
+  document.getElementById('content').style.display='block';
+  currentView==='overview' ? renderOverview() : renderCards();
+}
+
+function renderOverview() {
+  let complete=0, partial=0, empty=0;
+  for(let i=1;i<=NUM_LABS;i++) {
+    const s=getLabStatus(allData['lab'+i]);
+    if(s==='complete') complete++; else if(s==='partial') partial++; else empty++;
+  }
+  let html = `
+    <div class="stats-bar">
+      <div class="stat-card complete"><div class="stat-num">${complete}</div><div class="stat-label">הושלמו</div></div>
+      <div class="stat-card partial"><div class="stat-num">${partial}</div><div class="stat-label">בתהליך</div></div>
+      <div class="stat-card empty"><div class="stat-num">${empty}</div><div class="stat-label">ריקות</div></div>
+      <div class="stat-card"><div class="stat-num">${NUM_LABS}</div><div class="stat-label">סה״כ מעבדות</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-title">📋 סקירה כללית — כל המעבדות</div>
+      <div style="overflow-x:auto"><table><thead><tr>
+        <th>מעבדה</th><th>תאריך</th><th>מנהל</th><th>מסדי תקשורת</th><th>מסדי שרתים</th><th>שטח (מ"ר)</th><th>הספק חשמל</th><th>סטטוס</th><th></th>
+      </tr></thead><tbody>`;
+  for(let i=1;i<=NUM_LABS;i++) {
+    const d=allData['lab'+i]||{};
+    const s=getLabStatus(d);
+    const lbl=s==='complete'?'הושלם':s==='partial'?'בתהליך':'ריק';
+    html+=`<tr>
+      <td class="lab-name-cell">${d.lab_name||'מעבדה '+i}</td>
+      <td>${d.survey_date||'—'}</td><td>${d.manager_name||'—'}</td>
+      <td>${d.q1_current||'—'}</td><td>${d.q2_current||'—'}</td>
+      <td>${d.q17_current||'—'}</td><td>${d.q5_current||'—'}</td>
+      <td><span class="status-badge badge-${s}">${lbl}</span></td>
+      <td><button class="btn" onclick="openModal(${i})" style="padding:5px 10px;font-size:0.78rem">פרטים</button></td>
+    </tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+function renderCards() {
+  let html='<div class="lab-cards">';
+  for(let i=1;i<=NUM_LABS;i++) {
+    const d=allData['lab'+i]||{};
+    const s=getLabStatus(d);
+    const lbl=s==='complete'?'הושלם':s==='partial'?'בתהליך':'ריק';
+    html+=`<div class="lab-card" onclick="openModal(${i})">
+      <div class="lab-card-header"><h3>🔬 ${d.lab_name||'מעבדה '+i}</h3><span class="status-badge badge-${s}">${lbl}</span></div>
+      <div class="lab-card-body">
+        <div class="lab-meta"><span>📅 ${d.survey_date||'—'}</span> &nbsp; <span>👤 ${d.manager_name||'—'}</span></div>
+        <div class="q-row"><span class="q-label">מסדי תקשורת</span><span class="q-val">${d.q1_current||'—'}</span></div>
+        <div class="q-row"><span class="q-label">מסדי שרתים</span><span class="q-val">${d.q2_current||'—'}</span></div>
+        <div class="q-row"><span class="q-label">שטח המעבדה</span><span class="q-val">${d.q17_current||'—'}</span></div>
+        <div class="q-row"><span class="q-label">הספק חשמל</span><span class="q-val">${d.q5_current||'—'}</span></div>
+        <div style="margin-top:10px;text-align:center;font-size:0.8rem;color:#2E75B6;font-weight:600">לחץ לצפייה מלאה ←</div>
+      </div></div>`;
+  }
+  html+='</div>';
+  document.getElementById('content').innerHTML=html;
+}
+
+function openModal(labNum) {
+  const d=allData['lab'+labNum]||{};
+  document.getElementById('modal-title').textContent='🔬 '+(d.lab_name||'מעבדה '+labNum);
+  const sections={};
+  Q_META.forEach(q=>{ if(!sections[q.section]) sections[q.section]=[]; sections[q.section].push(q); });
+  let html=`<div style="background:#F7FAFC;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;display:flex;gap:20px;flex-wrap:wrap">
+    <span>📅 <strong>תאריך:</strong> ${d.survey_date||'—'}</span>
+    <span>👤 <strong>מנהל:</strong> ${d.manager_name||'—'}</span>
+    <span>🤝 <strong>מלווה:</strong> ${d.escort1||'—'}</span></div>`;
+  Object.entries(sections).forEach(([secKey,qs])=>{
+    const meta=SECTION_META[secKey];
+    html+=`<div class="sec-block"><div class="sec-title ${meta.cls}">${meta.icon} ${meta.name}</div>
+      <div class="modal-q-row header"><div>שאלה</div><div>מצב קיים</div><div>צורך עתידי</div><div>הערות</div></div>`;
+    qs.forEach(q=>{
+      const cur=d[q.id+'_current']||'—';
+      const fut=(q.hasTriple||q.isToggle)?(d[q.id+'_future']||'—'):'—';
+      const note=d[q.id+'_notes']||'—';
+      html+=`<div class="modal-q-row"><div>${q.label}</div><div class="val-cur">${cur}</div><div class="val-fut">${fut}</div><div class="val-note">${note}</div></div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if(!e||e.target===document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function exportCSV() {
+  const rows=[['מעבדה','תאריך','מנהל','מסדי תקשורת','מסדי שרתים','שטח','הספק','סטטוס']];
+  for(let i=1;i<=NUM_LABS;i++) {
+    const d=allData['lab'+i]||{};
+    const s=getLabStatus(d);
+    rows.push([d.lab_name||'מעבדה '+i,d.survey_date||'',d.manager_name||'',d.q1_current||'',d.q2_current||'',d.q17_current||'',d.q5_current||'',s==='complete'?'הושלם':s==='partial'?'בתהליך':'ריק']);
+  }
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='survey_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+loadData();
+</script>
+</body>
+</html>

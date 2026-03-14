@@ -451,6 +451,7 @@ textarea { resize: vertical; min-height: 80px; }
 .file-input-display:hover { border-color: var(--blue); background: #EBF4FF; }
 .file-input-display .file-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
 .file-list { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.file-tag img { display:block; }
 .file-tag {
   background: #EBF4FF; color: var(--blue);
   padding: 4px 8px; border-radius: 6px;
@@ -1814,10 +1815,10 @@ function populateLabFields() {
     });
   });
 
-  // File names (just display, not re-load actual files)
+  // Restore saved photos (base64 thumbnails)
   ['photos_general','photos_channels','photos_meters'].forEach(field => {
-    const names = labData[field + '_names'] || [];
-    renderFileList(field, names);
+    const photos = labData[field + '_photos'] || labData[field + '_names'] || [];
+    renderFileList(field, photos);
   });
 
   updateProgress();
@@ -1897,36 +1898,78 @@ function applyToggleStyle(btn, val) {
 }
 
 // ============================================================
-// FILE HANDLING
+// FILE HANDLING — saves images as base64 in localStorage
 // ============================================================
 function handleFiles(input, field) {
   if (!state.currentLab) return;
   const files = Array.from(input.files);
-  const names = files.map(f => f.name);
-  const existing = getLabData()[field + '_names'] || [];
-  const allNames = [...existing, ...names];
-  getLabData()[field + '_names'] = allNames;
-  renderFileList(field, allNames);
-  scheduleSave();
+  if (!files.length) return;
+
+  const existing = getLabData()[field + '_photos'] || [];
+  let pending = files.length;
+
+  files.forEach(file => {
+    // Warn if single file > 2MB
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('⚠ תמונה גדולה — עלולה לגרום לבעיות שמירה');
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      existing.push({ name: file.name, data: e.target.result, size: file.size });
+      pending--;
+      if (pending === 0) {
+        getLabData()[field + '_photos'] = existing;
+        renderFileList(field, existing);
+        scheduleSave();
+      }
+    };
+    reader.onerror = () => {
+      pending--;
+      showToast('שגיאה בקריאת קובץ: ' + file.name);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Clear input so same file can be re-selected
+  input.value = '';
 }
 
-function renderFileList(field, names) {
+function renderFileList(field, photos) {
   const listEl = document.getElementById('list-' + field);
   if (!listEl) return;
-  listEl.innerHTML = names.map((n, i) => `
-    <span class="file-tag">
-      📎 ${n}
-      <button onclick="removeFile('${field}',${i})" title="הסר">✕</button>
-    </span>
-  `).join('');
+  // Support old format (array of strings)
+  const items = photos.map((p, i) => {
+    const isObj = typeof p === 'object';
+    const name  = isObj ? p.name : p;
+    const data  = isObj ? p.data : null;
+    const thumb = data && data.startsWith('data:image')
+      ? `<img src="${data}" style="width:56px;height:42px;object-fit:cover;border-radius:4px;border:1px solid #ccc;cursor:pointer" onclick="viewPhoto('${field}',${i})" title="${name}">`
+      : `<span style="font-size:1.1rem">📎</span>`;
+    return `<span class="file-tag" style="align-items:center;gap:4px;padding:4px 6px">
+      ${thumb}
+      <span style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.75rem" title="${name}">${name}</span>
+      <button onclick="removeFile('${field}',${i})" title="הסר" style="margin-right:2px">✕</button>
+    </span>`;
+  });
+  listEl.innerHTML = items.join('');
+}
+
+function viewPhoto(field, idx) {
+  const photos = getLabData()[field + '_photos'] || [];
+  const p = photos[idx];
+  if (!p || !p.data) return;
+  const win = window.open('', '_blank', 'width=800,height=600');
+  win.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh">
+    <img src="${p.data}" style="max-width:100%;max-height:100%;object-fit:contain" title="${p.name}">
+  </body></html>`);
 }
 
 function removeFile(field, idx) {
   if (!state.currentLab) return;
-  const names = getLabData()[field + '_names'] || [];
-  names.splice(idx, 1);
-  getLabData()[field + '_names'] = names;
-  renderFileList(field, names);
+  const photos = getLabData()[field + '_photos'] || [];
+  photos.splice(idx, 1);
+  getLabData()[field + '_photos'] = photos;
+  renderFileList(field, photos);
   scheduleSave();
 }
 

@@ -1509,9 +1509,27 @@ textarea { resize: vertical; min-height: 80px; }
 <!-- ===== TOAST ===== -->
 <div id="toast"></div>
 
+<!-- ===== FIREBASE ===== -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <!-- ===== JAVASCRIPT ===== -->
 <script>
 'use strict';
+
+// ============================================================
+// FIREBASE INIT
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD2xTg33rxgE1hrejhUxzYvKFFROnDpoio",
+  authDomain: "checkpoint-labs-89d8c.firebaseapp.com",
+  projectId: "checkpoint-labs-89d8c",
+  storageBucket: "checkpoint-labs-89d8c.firebasestorage.app",
+  messagingSenderId: "218324722139",
+  appId: "1:218324722139:web:90ac7944bd64b19a3307fe"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // ============================================================
 // STATE
@@ -1584,16 +1602,42 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadData() {
+  // Load from localStorage as immediate cache
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) state.data = JSON.parse(raw);
   } catch(e) { state.data = {}; }
+
+  // Then sync from Firebase
+  db.collection('surveys').get().then(snapshot => {
+    snapshot.forEach(doc => {
+      state.data[doc.id] = doc.data();
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); } catch(e) {}
+    renderLabGrid();
+    showToast('✓ נתונים עודכנו מהשרת');
+  }).catch(e => {
+    console.warn('Firebase load error:', e);
+  });
 }
 
 function saveData() {
+  // Save locally
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
   } catch(e) { console.warn('Storage full'); }
+
+  // Save to Firebase (skip photo data - too large)
+  if (!state.currentLab) return;
+  const key = 'lab' + state.currentLab;
+  const labData = state.data[key] || {};
+  const dataToSave = {};
+  Object.entries(labData).forEach(([k, v]) => {
+    if (!k.endsWith('_photos')) dataToSave[k] = v || '';
+  });
+  db.collection('surveys').doc(key).set(dataToSave).catch(e => {
+    console.warn('Firebase save error:', e);
+  });
 }
 
 function setDefaultDate() {
